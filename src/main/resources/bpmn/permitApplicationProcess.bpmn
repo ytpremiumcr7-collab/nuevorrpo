@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+                  id="Definitions_Permit" targetNamespace="http://tuempresa.com/bpmn">
+  <bpmn:message id="Msg_PermitStatus" name="PermitStatusChanged" />
+  <bpmn:process id="permitApplicationProcess" isExecutable="true"
+                camunda:historyTimeToLive="1825">
+    <bpmn:startEvent id="Start_Permit"><bpmn:outgoing>F_P1</bpmn:outgoing></bpmn:startEvent>
+    <bpmn:sequenceFlow id="F_P1" sourceRef="Start_Permit" targetRef="Task_Submit" />
+    <bpmn:serviceTask id="Task_Submit" camunda:delegateExpression="${submitPermitDelegate}">
+      <bpmn:incoming>F_P1</bpmn:incoming>
+      <bpmn:outgoing>F_P2</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="F_P2" sourceRef="Task_Submit" targetRef="Task_AwaitAuthority" />
+    <bpmn:receiveTask id="Task_AwaitAuthority" messageRef="Msg_PermitStatus">
+      <bpmn:incoming>F_P2</bpmn:incoming>
+      <bpmn:outgoing>F_P3</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:boundaryEvent id="B_Permit_Deadline" attachedToRef="Task_AwaitAuthority"
+                        cancelActivity="true">
+      <bpmn:outgoing>F_P_Escalate</bpmn:outgoing>
+      <bpmn:timerEventDefinition>
+        <bpmn:timeDate xsi:type="bpmn:tFormalExpression">${permitDeadlineDate}</bpmn:timeDate>
+      </bpmn:timerEventDefinition>
+    </bpmn:boundaryEvent>
+    <bpmn:serviceTask id="Task_Escalate" camunda:delegateExpression="${escalatePermitDelegate}">
+      <bpmn:incoming>F_P_Escalate</bpmn:incoming>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="F_P_Escalate" sourceRef="B_Permit_Deadline" targetRef="Task_Escalate" />
+    <bpmn:sequenceFlow id="F_P3" sourceRef="Task_AwaitAuthority" targetRef="End_Permit" />
+    <bpmn:endEvent id="End_Permit"><bpmn:incoming>F_P3</bpmn:incoming></bpmn:endEvent>
+  </bpmn:process>
+</bpmn:definitions>

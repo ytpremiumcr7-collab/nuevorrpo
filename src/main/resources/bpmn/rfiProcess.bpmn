@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+                  id="Definitions_RFI" targetNamespace="http://tuempresa.com/bpmn">
+  <bpmn:process id="rfiProcess" isExecutable="true" camunda:historyTimeToLive="365">
+    <bpmn:startEvent id="Start_RFI"><bpmn:outgoing>F_R1</bpmn:outgoing></bpmn:startEvent>
+    <bpmn:sequenceFlow id="F_R1" sourceRef="Start_RFI" targetRef="Task_Route" />
+    <bpmn:serviceTask id="Task_Route" camunda:delegateExpression="${routeRfiDelegate}">
+      <bpmn:incoming>F_R1</bpmn:incoming>
+      <bpmn:outgoing>F_R2</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="F_R2" sourceRef="Task_Route" targetRef="Task_Respond" />
+    <bpmn:userTask id="Task_Respond" camunda:candidateGroups="${rfiAssigneeGroup}">
+      <bpmn:incoming>F_R2</bpmn:incoming>
+      <bpmn:outgoing>F_R3</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:boundaryEvent id="B_RFI_Deadline" attachedToRef="Task_Respond" cancelActivity="true">
+      <bpmn:outgoing>F_R_Escalate</bpmn:outgoing>
+      <bpmn:timerEventDefinition>
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">P14D</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:boundaryEvent>
+    <bpmn:serviceTask id="Task_Escalate" camunda:delegateExpression="${escalateRfiDelegate}">
+      <bpmn:incoming>F_R_Escalate</bpmn:incoming>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="F_R_Escalate" sourceRef="B_RFI_Deadline" targetRef="Task_Escalate" />
+    <bpmn:sequenceFlow id="F_R3" sourceRef="Task_Respond" targetRef="End_RFI" />
+    <bpmn:endEvent id="End_RFI"><bpmn:incoming>F_R3</bpmn:incoming></bpmn:endEvent>
+  </bpmn:process>
+</bpmn:definitions>

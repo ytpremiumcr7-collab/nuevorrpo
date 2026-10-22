@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/"
+             id="nivelAprobacionPagoDefinitions"
+             name="nivelAprobacionPago"
+             namespace="http://tuempresa.com/dmn">
+  <decision id="nivelAprobacionPago" name="nivelAprobacionPago">
+    <!--
+      hitPolicy=FIRST. La aprobación automática se limita explícitamente a MXN
+      bajo el umbral versionado. Toda moneda desconocida y toda ruta de monto
+      superior debe exigir revisión. El BPMN persiste la evidencia de la
+      decisión antes de crear una instrucción PENDING; una DMN sola no es
+      evidencia durable ni una transferencia bancaria.
+    -->
+    <decisionTable id="nivelAprobacionPagoTable" hitPolicy="FIRST">
+      <input id="input_monto" label="montoFactura">
+        <inputExpression id="ie_monto" typeRef="number"><text>montoFactura</text></inputExpression>
+      </input>
+      <input id="input_moneda" label="monedaFactura">
+        <inputExpression id="ie_moneda" typeRef="string"><text>monedaFactura</text></inputExpression>
+      </input>
+      <output id="output_ruta" label="rutaAprobacion" name="rutaAprobacion" typeRef="string"/>
+      <output id="output_rev" label="requiereRevisionManual" name="requiereRevisionManual" typeRef="boolean"/>
+      <output id="output_policy" label="policyVersion" name="policyVersion" typeRef="string"/>
+      <rule id="rule_automatica">
+        <inputEntry id="r1i1"><text>&lt; 1000</text></inputEntry>
+        <inputEntry id="r1i2"><text>"MXN"</text></inputEntry>
+        <outputEntry id="r1o1"><text>"AUTOMATICA"</text></outputEntry>
+        <outputEntry id="r1o2"><text>false</text></outputEntry>
+        <outputEntry id="r1o3"><text>"nivelAprobacionPago-v2-MXN"</text></outputEntry>
+      </rule>
+      <rule id="rule_gerente">
+        <inputEntry id="r2i1"><text>[1000..50000]</text></inputEntry>
+        <inputEntry id="r2i2"><text>-</text></inputEntry>
+        <outputEntry id="r2o1"><text>"GERENTE"</text></outputEntry>
+        <outputEntry id="r2o2"><text>true</text></outputEntry>
+        <outputEntry id="r2o3"><text>"nivelAprobacionPago-v2-MXN"</text></outputEntry>
+      </rule>
+      <rule id="rule_comite">
+        <inputEntry id="r3i1"><text>&gt; 50000</text></inputEntry>
+        <inputEntry id="r3i2"><text>-</text></inputEntry>
+        <outputEntry id="r3o1"><text>"COMITE"</text></outputEntry>
+        <outputEntry id="r3o2"><text>true</text></outputEntry>
+        <outputEntry id="r3o3"><text>"nivelAprobacionPago-v2-MXN"</text></outputEntry>
+      </rule>
+      <rule id="rule_default">
+        <inputEntry id="r4i1"><text>-</text></inputEntry>
+        <inputEntry id="r4i2"><text>-</text></inputEntry>
+        <outputEntry id="r4o1"><text>"GERENTE"</text></outputEntry>
+        <outputEntry id="r4o2"><text>true</text></outputEntry>
+        <outputEntry id="r4o3"><text>"nivelAprobacionPago-v2-MXN"</text></outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+</definitions>

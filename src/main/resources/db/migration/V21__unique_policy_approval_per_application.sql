@@ -1,0 +1,1 @@
+-- V21: a retry must never create a second approved policy decision for one application.\nCREATE UNIQUE INDEX ux_payment_approval_policy_once\n  ON payment_approval_decision (tenant_id, payment_application_id)\n  WHERE decision_source = 'POLICY' AND decision = 'APPROVED';

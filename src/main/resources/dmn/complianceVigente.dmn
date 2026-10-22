@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/"
+             id="complianceVigenteDefinitions"
+             name="complianceVigente"
+             namespace="http://tuempresa.com/dmn">
+  <decision id="complianceVigente" name="complianceVigente">
+    <decisionTable id="complianceVigenteTable" hitPolicy="FIRST">
+      <input id="input_tipoRequisito" label="tipoRequisito">
+        <inputExpression id="ie_tipo" typeRef="string"><text>tipoRequisito</text></inputExpression>
+      </input>
+      <input id="input_fechaVencimiento" label="fechaVencimiento">
+        <inputExpression id="ie_venc" typeRef="date"><text>fechaVencimiento</text></inputExpression>
+      </input>
+      <input id="input_fechaActual" label="fechaActual">
+        <inputExpression id="ie_actual" typeRef="date"><text>fechaActual</text></inputExpression>
+      </input>
+      <input id="input_estadoVerificacion" label="estadoVerificacion">
+        <inputExpression id="ie_estado" typeRef="string"><text>estadoVerificacion</text></inputExpression>
+      </input>
+      <output id="output_vigente" label="vigente" name="vigente" typeRef="boolean"/>
+      <output id="output_motivo" label="motivoBloqueo" name="motivoBloqueo" typeRef="string"/>
+      <rule id="rule_revocado">
+        <inputEntry id="r1i1"><text>-</text></inputEntry>
+        <inputEntry id="r1i2"><text>-</text></inputEntry>
+        <inputEntry id="r1i3"><text>-</text></inputEntry>
+        <inputEntry id="r1i4"><text>"REVOCADO"</text></inputEntry>
+        <outputEntry id="r1o1"><text>false</text></outputEntry>
+        <outputEntry id="r1o2"><text>"Certificado revocado"</text></outputEntry>
+      </rule>
+      <rule id="rule_rechazado">
+        <inputEntry id="r2i1"><text>-</text></inputEntry>
+        <inputEntry id="r2i2"><text>-</text></inputEntry>
+        <inputEntry id="r2i3"><text>-</text></inputEntry>
+        <inputEntry id="r2i4"><text>"RECHAZADO"</text></inputEntry>
+        <outputEntry id="r2o1"><text>false</text></outputEntry>
+        <outputEntry id="r2o2"><text>"Documento rechazado"</text></outputEntry>
+      </rule>
+      <rule id="rule_pendiente">
+        <inputEntry id="r3i1"><text>-</text></inputEntry>
+        <inputEntry id="r3i2"><text>-</text></inputEntry>
+        <inputEntry id="r3i3"><text>-</text></inputEntry>
+        <inputEntry id="r3i4"><text>"PENDIENTE"</text></inputEntry>
+        <outputEntry id="r3o1"><text>false</text></outputEntry>
+        <outputEntry id="r3o2"><text>"Documento no verificado"</text></outputEntry>
+      </rule>
+      <rule id="rule_expirado">
+        <inputEntry id="r4i1"><text>-</text></inputEntry>
+        <inputEntry id="r4i2"><text>-</text></inputEntry>
+        <inputEntry id="r4i3"><text>-</text></inputEntry>
+        <inputEntry id="r4i4"><text>"EXPIRADO"</text></inputEntry>
+        <outputEntry id="r4o1"><text>false</text></outputEntry>
+        <outputEntry id="r4o2"><text>"Certificado expirado"</text></outputEntry>
+      </rule>
+      <rule id="rule_vencido">
+        <inputEntry id="r5i1"><text>-</text></inputEntry>
+        <inputEntry id="r5i2"><text>&lt; fechaActual</text></inputEntry>
+        <inputEntry id="r5i3"><text>-</text></inputEntry>
+        <inputEntry id="r5i4"><text>-</text></inputEntry>
+        <outputEntry id="r5o1"><text>false</text></outputEntry>
+        <outputEntry id="r5o2"><text>"Certificado vencido"</text></outputEntry>
+      </rule>
+      <rule id="rule_vigente">
+        <inputEntry id="r6i1"><text>-</text></inputEntry>
+        <inputEntry id="r6i2"><text>-</text></inputEntry>
+        <inputEntry id="r6i3"><text>-</text></inputEntry>
+        <inputEntry id="r6i4"><text>"VERIFICADO"</text></inputEntry>
+        <outputEntry id="r6o1"><text>true</text></outputEntry>
+        <outputEntry id="r6o2"><text>null</text></outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+</definitions>

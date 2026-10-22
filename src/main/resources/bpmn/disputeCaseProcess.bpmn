@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+                  id="Definitions_DisputeCase" targetNamespace="http://tuempresa.com/bpmn">
+
+  <bpmn:message id="Msg_DisputeOpened" name="DisputeOpened" />
+  <bpmn:message id="Msg_AckReceived" name="DisputeAcknowledgmentReceived" />
+  <bpmn:message id="Msg_ResponseReceived" name="DisputeResponseReceived" />
+  <bpmn:message id="Msg_ResponseLapsed" name="DisputeResponseLapsed" />
+
+  <bpmn:process id="disputeCaseProcess" isExecutable="true"
+                camunda:historyTimeToLive="2555">
+
+    <bpmn:startEvent id="Start_Dispute" camunda:initiator="initiator">
+      <bpmn:outgoing>F_D1</bpmn:outgoing>
+      <bpmn:messageEventDefinition messageRef="Msg_DisputeOpened" />
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="F_D1" sourceRef="Start_Dispute" targetRef="Task_GenManifest" />
+
+    <bpmn:serviceTask id="Task_GenManifest"
+                      camunda:delegateExpression="${generateEvidenceManifestDelegate}"
+                      camunda:asyncBefore="true">
+      <bpmn:incoming>F_D1</bpmn:incoming>
+      <bpmn:outgoing>F_D2</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="F_D2" sourceRef="Task_GenManifest" targetRef="Task_SendNotice" />
+
+    <bpmn:serviceTask id="Task_SendNotice"
+                      camunda:delegateExpression="${sendFormalNoticeDelegate}"
+                      camunda:asyncBefore="true">
+      <bpmn:incoming>F_D2</bpmn:incoming>
+      <bpmn:outgoing>F_D3</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="F_D3" sourceRef="Task_SendNotice" targetRef="Task_AwaitAck" />
+
+    <bpmn:receiveTask id="Task_AwaitAck" messageRef="Msg_AckReceived">
+      <bpmn:incoming>F_D3</bpmn:incoming>
+      <bpmn:outgoing>F_D4</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:sequenceFlow id="F_D4" sourceRef="Task_AwaitAck" targetRef="Task_AwaitResponse" />
+
+    <bpmn:receiveTask id="Task_AwaitResponse" messageRef="Msg_ResponseReceived">
+      <bpmn:incoming>F_D4</bpmn:incoming>
+      <bpmn:outgoing>F_D5</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:boundaryEvent id="B_Lapsed" attachedToRef="Task_AwaitResponse" cancelActivity="true">
+      <bpmn:outgoing>F_Lapsed</bpmn:outgoing>
+      <bpmn:messageEventDefinition messageRef="Msg_ResponseLapsed" />
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="F_Lapsed" sourceRef="B_Lapsed" targetRef="End_Lapsed" />
+    <bpmn:endEvent id="End_Lapsed"><bpmn:incoming>F_Lapsed</bpmn:incoming></bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="F_D5" sourceRef="Task_AwaitResponse" targetRef="Task_Negotiation" />
+
+    <bpmn:userTask id="Task_Negotiation" camunda:candidateGroups="LEGAL">
+      <bpmn:incoming>F_D5</bpmn:incoming>
+      <bpmn:outgoing>F_D6</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="F_D6" sourceRef="Task_Negotiation" targetRef="Task_RecordOutcome" />
+
+    <bpmn:userTask id="Task_RecordOutcome" camunda:candidateGroups="LEGAL">
+      <bpmn:incoming>F_D6</bpmn:incoming>
+      <bpmn:outgoing>F_D7</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="F_D7" sourceRef="Task_RecordOutcome" targetRef="Task_EvalResolution" />
+
+    <bpmn:businessRuleTask id="Task_EvalResolution"
+                           camunda:decisionRef="disputeResolutionDecision"
+                           camunda:decisionRefBinding="deployment"
+                           camunda:mapDecisionResult="singleResult"
+                           camunda:resultVariable="disputeResult">
+      <bpmn:incoming>F_D7</bpmn:incoming>
+      <bpmn:outgoing>F_D8</bpmn:outgoing>
+    </bpmn:businessRuleTask>
+    <bpmn:sequenceFlow id="F_D8" sourceRef="Task_EvalResolution" targetRef="End_Resolved" />
+
+    <bpmn:endEvent id="End_Resolved"><bpmn:incoming>F_D8</bpmn:incoming></bpmn:endEvent>
+  </bpmn:process>
+</bpmn:definitions>

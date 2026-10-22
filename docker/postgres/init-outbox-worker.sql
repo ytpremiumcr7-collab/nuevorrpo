@@ -1,0 +1,1 @@
+-- Worker independiente para reclamar/procesar outbox transversal con privilegio mínimo.\nDO $$\nBEGIN\n    IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'outbox_worker') THEN\n        CREATE ROLE outbox_worker WITH NOLOGIN NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE;\n    END IF;\nEND $$;\nGRANT CONNECT ON DATABASE construction TO outbox_worker;

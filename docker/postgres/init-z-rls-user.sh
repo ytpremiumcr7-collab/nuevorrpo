@@ -1,0 +1,1 @@
+#!/usr/bin/env bash\nset -euo pipefail\n: "${APP_DB_PASSWORD:?APP_DB_PASSWORD must be set when initializing PostgreSQL}"\npsql --username "${POSTGRES_USER:-postgres}" --dbname "${POSTGRES_DB:-construction}"   --set=app_password="$APP_DB_PASSWORD" <<'SQL'\nALTER ROLE app_user WITH LOGIN PASSWORD :'app_password'\n    NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE;\nSQL

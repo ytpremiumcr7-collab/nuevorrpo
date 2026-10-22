@@ -1,0 +1,1 @@
+spring:\n  config:\n    activate:\n      on-profile: dev\nconstruction:\n  auth:\n    allow-user-id: ${ALLOW_X_USER_ID:true}

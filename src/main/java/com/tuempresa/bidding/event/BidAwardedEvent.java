@@ -1,0 +1,1 @@
+package com.tuempresa.bidding.event;\n\nimport java.math.BigDecimal;\nimport java.util.UUID;\n\npublic record BidAwardedEvent(\n    UUID tenantId, UUID bidPackageId, UUID selectedBidId, UUID projectId,\n    UUID contractId, UUID bidderId, BigDecimal amount,\n    String justification, UUID awardedBy) {}

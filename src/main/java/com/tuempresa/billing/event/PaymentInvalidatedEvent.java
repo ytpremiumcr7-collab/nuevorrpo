@@ -1,0 +1,1 @@
+package com.tuempresa.billing.event;\n\nimport java.math.BigDecimal;\nimport java.time.LocalDate;\nimport java.util.UUID;\n\npublic record PaymentInvalidatedEvent(\n    UUID tenantId, UUID paymentId, UUID subcontractorId, UUID projectId,\n    String invalidityType, UUID evidenceId, BigDecimal amount,\n    String contractualBasis, LocalDate effectiveDate) {}

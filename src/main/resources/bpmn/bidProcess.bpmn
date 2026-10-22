@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+                  id="Definitions_Bid" targetNamespace="http://tuempresa.com/bpmn">
+  <bpmn:message id="Msg_BidReceived" name="BidReceived" />
+  <bpmn:process id="bidProcess" isExecutable="true" camunda:historyTimeToLive="365">
+    <bpmn:startEvent id="Start_Bid"><bpmn:outgoing>F_B1</bpmn:outgoing></bpmn:startEvent>
+    <bpmn:sequenceFlow id="F_B1" sourceRef="Start_Bid" targetRef="Task_RequestBids" />
+    <bpmn:serviceTask id="Task_RequestBids"
+                      camunda:delegateExpression="${requestBidsDelegate}">
+      <bpmn:incoming>F_B1</bpmn:incoming>
+      <bpmn:outgoing>F_B2</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="F_B2" sourceRef="Task_RequestBids" targetRef="Task_ReceiveBids" />
+    <bpmn:receiveTask id="Task_ReceiveBids" messageRef="Msg_BidReceived">
+      <bpmn:incoming>F_B2</bpmn:incoming>
+      <bpmn:outgoing>F_B3</bpmn:outgoing>
+    </bpmn:receiveTask>
+    <bpmn:sequenceFlow id="F_B3" sourceRef="Task_ReceiveBids" targetRef="Task_CompareBids" />
+    <bpmn:serviceTask id="Task_CompareBids"
+                      camunda:delegateExpression="${compareBidsDelegate}">
+      <bpmn:incoming>F_B3</bpmn:incoming>
+      <bpmn:outgoing>F_B4</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="F_B4" sourceRef="Task_CompareBids" targetRef="Task_Award" />
+    <bpmn:userTask id="Task_Award" camunda:candidateGroups="BID_COMMITTEE">
+      <bpmn:incoming>F_B4</bpmn:incoming>
+      <bpmn:outgoing>F_B5</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="F_B5" sourceRef="Task_Award" targetRef="End_Bid" />
+    <bpmn:endEvent id="End_Bid"><bpmn:incoming>F_B5</bpmn:incoming></bpmn:endEvent>
+  </bpmn:process>
+</bpmn:definitions>

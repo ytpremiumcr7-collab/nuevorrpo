@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+                  id="Definitions_Compensation" targetNamespace="http://tuempresa.com/bpmn">
+
+  <bpmn:message id="Msg_PaymentInvalidated" name="PaymentInvalidatedMessage" />
+
+  <bpmn:process id="compensationCaseProcess" isExecutable="true"
+                camunda:historyTimeToLive="1825">
+
+    <bpmn:startEvent id="Start_Comp" camunda:initiator="initiator">
+      <bpmn:outgoing>F_K1</bpmn:outgoing>
+      <bpmn:messageEventDefinition messageRef="Msg_PaymentInvalidated" />
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="F_K1" sourceRef="Start_Comp" targetRef="Sub_Recovery" />
+
+    <bpmn:subProcess id="Sub_Recovery">
+      <bpmn:incoming>F_K1</bpmn:incoming>
+      <bpmn:outgoing>F_K_End</bpmn:outgoing>
+
+      <bpmn:startEvent id="S_K_Start">
+        <bpmn:outgoing>F_KS1</bpmn:outgoing>
+      </bpmn:startEvent>
+      <bpmn:sequenceFlow id="F_KS1" sourceRef="S_K_Start" targetRef="Task_ApplyDeduction" />
+
+      <bpmn:serviceTask id="Task_ApplyDeduction"
+                        camunda:delegateExpression="${applyDeductionDelegate}"
+                        camunda:asyncBefore="true"
+                        camunda:failedJobRetryTimeCycle="R3/PT30S">
+        <bpmn:incoming>F_KS1</bpmn:incoming>
+        <bpmn:outgoing>F_KS2</bpmn:outgoing>
+      </bpmn:serviceTask>
+
+      <bpmn:boundaryEvent id="CompBoundary_Deduction" attachedToRef="Task_ApplyDeduction">
+        <bpmn:compensateEventDefinition />
+      </bpmn:boundaryEvent>
+
+      <bpmn:serviceTask id="Task_ReverseDeduction" isForCompensation="true"
+                        camunda:delegateExpression="${reverseDeductionDelegate}"
+                        camunda:asyncBefore="true" />
+
+      <bpmn:association id="Assoc_Comp"
+                        sourceRef="CompBoundary_Deduction"
+                        targetRef="Task_ReverseDeduction" />
+
+      <bpmn:sequenceFlow id="F_KS2" sourceRef="Task_ApplyDeduction" targetRef="S_K_End" />
+      <bpmn:endEvent id="S_K_End"><bpmn:incoming>F_KS2</bpmn:incoming></bpmn:endEvent>
+    </bpmn:subProcess>
+
+    <bpmn:sequenceFlow id="F_K_End" sourceRef="Sub_Recovery" targetRef="GW_Dispute" />
+
+    <bpmn:exclusiveGateway id="GW_Dispute" default="F_K_OK">
+      <bpmn:incoming>F_K_End</bpmn:incoming>
+      <bpmn:outgoing>F_K_OK</bpmn:outgoing>
+      <bpmn:outgoing>F_K_Disputed</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="F_K_OK" sourceRef="GW_Dispute" targetRef="Task_MarkRecovered" />
+    <bpmn:sequenceFlow id="F_K_Disputed" sourceRef="GW_Dispute" targetRef="Task_MarkDisputed">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${disputed == true}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+
+    <bpmn:serviceTask id="Task_MarkRecovered"
+                      camunda:delegateExpression="${markCompensationStateDelegate}">
+      <bpmn:incoming>F_K_OK</bpmn:incoming>
+      <bpmn:outgoing>F_K_Recovered</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="newStatus">RECOVERED</camunda:inputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="F_K_Recovered" sourceRef="Task_MarkRecovered" targetRef="End_Comp_OK" />
+    <bpmn:endEvent id="End_Comp_OK"><bpmn:incoming>F_K_Recovered</bpmn:incoming></bpmn:endEvent>
+
+    <bpmn:serviceTask id="Task_MarkDisputed"
+                      camunda:delegateExpression="${markCompensationStateDelegate}">
+      <bpmn:incoming>F_K_Disputed</bpmn:incoming>
+      <bpmn:outgoing>F_K_Disputed_End</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="newStatus">DISPUTED</camunda:inputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="F_K_Disputed_End" sourceRef="Task_MarkDisputed" targetRef="End_Comp_Disputed" />
+    <bpmn:endEvent id="End_Comp_Disputed"><bpmn:incoming>F_K_Disputed_End</bpmn:incoming></bpmn:endEvent>
+
+  </bpmn:process>
+</bpmn:definitions>

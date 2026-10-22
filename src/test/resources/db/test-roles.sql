@@ -1,0 +1,1 @@
+-- Test-only login roles exist before Spring creates its application/worker pools.\nCREATE ROLE app_user LOGIN PASSWORD 'app_user_test'\n  NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE;\nCREATE ROLE outbox_worker LOGIN PASSWORD 'outbox_worker_test'\n  NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE;

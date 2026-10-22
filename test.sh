@@ -1,0 +1,1 @@
+#!/usr/bin/env bash\nset -euo pipefail\nmvn -q test

@@ -1,0 +1,1 @@
+package com.tuempresa.platform.web;\nimport java.util.List;\npublic record PageResponse<T>(List<T> content, int page, int size, long total) {}

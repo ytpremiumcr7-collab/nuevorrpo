@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/"
+             id="definitions_disputeResolution" name="disputeResolutionDecision"
+             namespace="http://tuempresa.com/dmn">
+  <decision id="disputeResolutionDecision" name="Resolución de disputa">
+    <decisionTable id="dt_dr" hitPolicy="UNIQUE">
+      <input id="i1">
+        <inputExpression typeRef="string"><text>outcomeType</text></inputExpression>
+      </input>
+      <output id="o1" name="compensationCommand" typeRef="string"/>
+      <output id="o2" name="requiresFinanceApproval" typeRef="boolean"/>
+      <output id="o3" name="financeApprovalReason" typeRef="string"/>
+      <rule>
+        <inputEntry><text>"CONTRACTOR_WINS_TOTAL"</text></inputEntry>
+        <outputEntry><text>"CONSOLIDATE"</text></outputEntry>
+        <outputEntry><text>false</text></outputEntry>
+        <outputEntry><text>null</text></outputEntry>
+      </rule>
+      <rule>
+        <inputEntry><text>"CONTRACTOR_WINS_PARTIAL"</text></inputEntry>
+        <outputEntry><text>"CONSOLIDATE"</text></outputEntry>
+        <outputEntry><text>false</text></outputEntry>
+        <outputEntry><text>null</text></outputEntry>
+      </rule>
+      <rule>
+        <inputEntry><text>"SUBCONTRACTOR_WINS_TOTAL"</text></inputEntry>
+        <outputEntry><text>"REVERSE_FULL"</text></outputEntry>
+        <outputEntry><text>true</text></outputEntry>
+        <outputEntry><text>"Reversión total requiere aprobación financiera"</text></outputEntry>
+      </rule>
+      <rule>
+        <inputEntry><text>"SUBCONTRACTOR_WINS_PARTIAL"</text></inputEntry>
+        <outputEntry><text>"REVERSE_PARTIAL"</text></outputEntry>
+        <outputEntry><text>true</text></outputEntry>
+        <outputEntry><text>"Reversión parcial requiere aprobación financiera"</text></outputEntry>
+      </rule>
+      <rule>
+        <inputEntry><text>"WITHDRAWN"</text></inputEntry>
+        <outputEntry><text>"CONSOLIDATE"</text></outputEntry>
+        <outputEntry><text>false</text></outputEntry>
+        <outputEntry><text>null</text></outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+</definitions>

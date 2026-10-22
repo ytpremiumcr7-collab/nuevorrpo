@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+                  id="Definitions_Incident" targetNamespace="http://tuempresa.com/bpmn">
+
+  <bpmn:process id="incidentReportProcess" isExecutable="true"
+                camunda:historyTimeToLive="2555">
+
+    <bpmn:startEvent id="Start_Incident"><bpmn:outgoing>F_I1</bpmn:outgoing></bpmn:startEvent>
+    <bpmn:sequenceFlow id="F_I1" sourceRef="Start_Incident" targetRef="Task_Classify" />
+
+    <bpmn:serviceTask id="Task_Classify"
+                      camunda:delegateExpression="${classifyIncidentDelegate}"
+                      camunda:asyncBefore="true">
+      <bpmn:incoming>F_I1</bpmn:incoming>
+      <bpmn:outgoing>F_I2</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="F_I2" sourceRef="Task_Classify" targetRef="GW_Recordable" />
+
+    <bpmn:exclusiveGateway id="GW_Recordable" default="F_NotRecordable">
+      <bpmn:incoming>F_I2</bpmn:incoming>
+      <bpmn:outgoing>F_Recordable</bpmn:outgoing>
+      <bpmn:outgoing>F_NotRecordable</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="F_Recordable" sourceRef="GW_Recordable" targetRef="Task_Investigate">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">
+        ${severity == 'FATALITY' || severity == 'HOSPITALIZATION' || severity == 'AMPUTATION' || severity == 'RECORDABLE'}
+      </bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="F_NotRecordable" sourceRef="GW_Recordable" targetRef="End_Closed" />
+
+    <bpmn:userTask id="Task_Investigate" camunda:candidateGroups="SAFETY">
+      <bpmn:incoming>F_Recordable</bpmn:incoming>
+      <bpmn:outgoing>F_I3</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:boundaryEvent id="B_OshaDeadline" attachedToRef="Task_Investigate" cancelActivity="false">
+      <bpmn:outgoing>F_EscalateOsha</bpmn:outgoing>
+      <bpmn:timerEventDefinition>
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT8H</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:boundaryEvent>
+    <bpmn:serviceTask id="Task_EscalateOsha"
+                      camunda:delegateExpression="${escalateOshaDeadlineDelegate}">
+      <bpmn:incoming>F_EscalateOsha</bpmn:incoming>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="F_EscalateOsha" sourceRef="B_OshaDeadline" targetRef="Task_EscalateOsha" />
+
+    <bpmn:sequenceFlow id="F_I3" sourceRef="Task_Investigate" targetRef="Task_GenerateOsha" />
+    <bpmn:serviceTask id="Task_GenerateOsha"
+                      camunda:delegateExpression="${generateOshaFormsDelegate}"
+                      camunda:asyncBefore="true">
+      <bpmn:incoming>F_I3</bpmn:incoming>
+      <bpmn:outgoing>F_I4</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="F_I4" sourceRef="Task_GenerateOsha" targetRef="End_Closed" />
+    <bpmn:endEvent id="End_Closed"><bpmn:incoming>F_I4</bpmn:incoming><bpmn:incoming>F_NotRecordable</bpmn:incoming></bpmn:endEvent>
+
+  </bpmn:process>
+</bpmn:definitions>

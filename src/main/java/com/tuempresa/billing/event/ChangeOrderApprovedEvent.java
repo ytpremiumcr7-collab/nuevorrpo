@@ -1,0 +1,1 @@
+package com.tuempresa.billing.event;\nimport java.math.BigDecimal;\nimport java.util.UUID;\npublic record ChangeOrderApprovedEvent(\n    UUID tenantId, UUID contractId, UUID changeOrderId, BigDecimal amount) {}

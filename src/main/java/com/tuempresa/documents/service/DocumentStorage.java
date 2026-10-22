@@ -1,0 +1,1 @@
+package com.tuempresa.documents.service;\n\nimport java.io.InputStream;\n\npublic interface DocumentStorage {\n    String store(String key, InputStream content, String contentType, long size);\n    InputStream retrieve(String key);\n    void delete(String key);\n}

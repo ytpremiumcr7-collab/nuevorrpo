@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/"
+             id="definitions_recoveryMethod" name="recoveryMethodDecision"
+             namespace="http://tuempresa.com/dmn">
+  <decision id="recoveryMethodDecision" name="Método de recuperación">
+    <decisionTable id="dt_rm" hitPolicy="FIRST">
+      <input id="i1">
+        <inputExpression typeRef="boolean"><text>hasNextInvoiceSameProject</text></inputExpression>
+      </input>
+      <input id="i2">
+        <inputExpression typeRef="number"><text>amountToRecover</text></inputExpression>
+      </input>
+      <input id="i3">
+        <inputExpression typeRef="number"><text>retentionAvailable</text></inputExpression>
+      </input>
+      <output id="o1" name="method" typeRef="string"/>
+      <output id="o2" name="requiresFinanceApproval" typeRef="boolean"/>
+      <rule>
+        <inputEntry><text>true</text></inputEntry>
+        <inputEntry><text>-</text></inputEntry>
+        <inputEntry><text>-</text></inputEntry>
+        <outputEntry><text>"DEDUCTION"</text></outputEntry>
+        <outputEntry><text>false</text></outputEntry>
+      </rule>
+      <rule>
+        <inputEntry><text>false</text></inputEntry>
+        <inputEntry><text>-</text></inputEntry>
+        <inputEntry><text>&gt; 0</text></inputEntry>
+        <outputEntry><text>"RETAINAGE"</text></outputEntry>
+        <outputEntry><text>false</text></outputEntry>
+      </rule>
+      <rule>
+        <inputEntry><text>false</text></inputEntry>
+        <inputEntry><text>&lt; 5000</text></inputEntry>
+        <inputEntry><text>-</text></inputEntry>
+        <outputEntry><text>"CLAWBACK"</text></outputEntry>
+        <outputEntry><text>false</text></outputEntry>
+      </rule>
+      <rule>
+        <inputEntry><text>false</text></inputEntry>
+        <inputEntry><text>-</text></inputEntry>
+        <inputEntry><text>-</text></inputEntry>
+        <outputEntry><text>"LEGAL"</text></outputEntry>
+        <outputEntry><text>true</text></outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+</definitions>

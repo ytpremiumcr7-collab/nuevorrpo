@@ -1,0 +1,1 @@
+package com.tuempresa.compensation.event;\n\nimport java.math.BigDecimal;\nimport java.util.UUID;\n\npublic record CompensationCaseCreatedEvent(\n    UUID tenantId, UUID caseId, UUID paymentId,\n    UUID subcontractorId, UUID projectId,\n    String invalidityType, UUID evidenceId,\n    BigDecimal amount, String contractualBasis) {}

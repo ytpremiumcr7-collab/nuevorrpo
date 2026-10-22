@@ -1,0 +1,7 @@
+# One-shot, isolated Flyway job. Database-owner credentials never enter the HTTP image.
+FROM maven:3.9-eclipse-temurin-21
+WORKDIR /app
+COPY pom.xml ./pom.xml
+RUN mvn -B -N org.flywaydb:flyway-maven-plugin:9.22.3:help
+COPY src/main/resources/db/migration ./src/main/resources/db/migration
+ENTRYPOINT ["mvn", "-B", "-N", "flyway:migrate"]
