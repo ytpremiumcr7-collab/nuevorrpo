@@ -5,7 +5,7 @@ on:
     branches:
       - prepare/construction-automation-2026-10-22
     paths:
-      - construction-automation-candidate-upload.zip
+      - upload-parts/**
 
 permissions:
   contents: read
@@ -32,12 +32,17 @@ jobs:
         shell: bash
         run: |
           python3 - <<'PY'
-          import os, stat, zipfile
+          import base64, re, stat, zipfile
           from pathlib import Path, PurePosixPath
 
+          parts = sorted(Path("upload-parts").glob("part-*.b64"))
+          if not 10 <= len(parts) <= 40:
+              raise SystemExit(f"unexpected number of base64 parts: {len(parts)}")
+          encoded = "".join(p.read_text(encoding="ascii").strip() for p in parts)
+          if not re.fullmatch(r"[A-Za-z0-9+/]*={0,2}", encoded) or len(encoded) % 4:
+              raise SystemExit("invalid base64 archive parts")
           archive = Path("construction-automation-candidate-upload.zip")
-          if not archive.is_file():
-              raise SystemExit("archive missing")
+          archive.write_bytes(base64.b64decode(encoded, validate=True))
           if archive.stat().st_size > 10 * 1024 * 1024:
               raise SystemExit("archive exceeds 10 MiB upload limit")
           root = Path.cwd().resolve()
