@@ -73,6 +73,11 @@ jobs:
                       raise SystemExit(f"symlinks are not allowed: {name!r}")
                   if info.is_dir():
                       continue
+                  # GitHub Actions' GITHUB_TOKEN cannot add workflow files without workflows permission.
+                  # Import source first; add the project CI workflow separately with an authorized repository write.
+                  if name == ".github/workflows/ci.yml":
+                      print("Deferred .github/workflows/ci.yml because Actions token lacks workflows permission")
+                      continue
                   if info.file_size > 5 * 1024 * 1024:
                       raise SystemExit(f"individual file too large: {name!r}")
                   out = (root / Path(*rel.parts)).resolve()
